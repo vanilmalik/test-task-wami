@@ -3,17 +3,15 @@ package com.malik.task.wamisw.template;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TimeZone;
-
-import static org.apache.logging.log4j.util.Strings.isNotEmpty;
+import java.util.stream.Stream;
 
 public abstract class AbstractFindTimeTemplate implements FindTimeTemplate {
 
@@ -29,13 +27,12 @@ public abstract class AbstractFindTimeTemplate implements FindTimeTemplate {
     public Map<String, LocalDateTime> retrieveResults(String pathToFile) {
         HashMap<String, LocalDateTime> tagWithResult = new HashMap<>();
 
-        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(new File(pathToFile)))) {
-            String logLine;
-            while (isNotEmpty((logLine = bufferedReader.readLine()))) {
+        try (Stream<String> stream = Files.lines(Paths.get(pathToFile))) {
+            stream.forEach(logLine -> {
                 String tag = getTagFromLogLine(logLine);
                 LocalDateTime timeStamp = getLocalDateTimeFromLogLine(logLine);
                 processLogLine(tag, timeStamp, tagWithResult);
-            }
+            });
         } catch (IOException e) {
             LOGGER.error("Error while reading file", e);
         }
